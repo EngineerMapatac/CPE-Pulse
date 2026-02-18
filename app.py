@@ -1,93 +1,112 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import numpy as np
+import plotly.graph_objects as go
 
-# 1. Page Configuration (Browser Tab Title & Layout)
+# --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="CPE-Pulse | Engr Data Analysis",
-    page_icon="⚡",
+    page_title="CPE-Pulse | Engineering Data Analysis",
+    page_icon="⚙️",
     layout="wide"
 )
 
-# 2. Sidebar Navigation (Mobile-Friendly Menu)
+# --- SIDEBAR NAVIGATION ---
 st.sidebar.title("⚡ CPE-Pulse")
-st.sidebar.markdown("By: *Engr. J.R. Mapatac*")
-page = st.sidebar.radio(
-    "Select Module:",
-    ["🏠 Home", "📡 Network Traffic", "🤖 Sensor Fusion", "🔋 Power Profiler"]
+st.sidebar.caption("Based on *Vardeman & Jobe*")
+lesson = st.sidebar.radio(
+    "Select Lesson:",
+    ["📖 Lesson 1: Variation (Gear Case)", "🔧 Playground: Upload Data"]
 )
 
-# --- PAGE: HOME ---
-if page == "🏠 Home":
-    st.title("Welcome to CPE-Pulse ⚡")
+# --- LESSON 1: THE MACK TRUCK GEAR CASE ---
+if lesson == "📖 Lesson 1: Variation (Gear Case)":
+    st.title("⚙️ Lesson 1: Handling Variation in Manufacturing")
     st.markdown("""
-    ### Engineering Data Analysis for Everyone
-    This platform bridges the gap between **Computer Engineering hardware** and **Data Science**.
+    **The Problem:** A process engineer at Mack Truck needs to minimize distortion (runout) in gears during heat treatment. 
+    should the gears be **Laid Flat** or **Hung**?
     
-    **Choose a module from the sidebar to start:**
-    * **📡 Network Traffic:** Analyze packet loss and latency (Cisco focus).
-    * **🤖 Sensor Fusion:** Clean noisy robotics data (Kalman Filters).
-    * **🔋 Power Profiler:** Optimize embedded systems (Six Sigma/DMAIC).
+    *Reference: Basic Engineering Data Collection and Analysis, Chapter 1, Example 1*
     """)
+
+    # 1. LOAD ACTUAL DATA FROM TEXTBOOK 
+    # "Laid" data (38 gears) and "Hung" data (39 gears) from Table 1.1
+    laid_data = [5, 8, 8, 9, 9, 9, 9, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15, 15, 15, 16, 17, 17, 18, 19, 27]
+    hung_data = [7, 8, 8, 10, 10, 10, 10, 11, 11, 11, 12, 13, 13, 13, 15, 17, 17, 17, 17, 18, 19, 19, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 23, 24, 27, 27, 28, 31, 36]
+
+    # Create a DataFrame for analysis
+    df_laid = pd.DataFrame({'Runout (.0001 in)': laid_data, 'Method': 'Laid'})
+    df_hung = pd.DataFrame({'Runout (.0001 in)': hung_data, 'Method': 'Hung'})
+    df = pd.concat([df_laid, df_hung])
+
+    # 2. INTERACTIVE VISUALIZATION
+    st.subheader("1. Visualizing the Variation")
+    st.write("The book uses 'Dot Diagrams' to show that variation exists even within a single method.")
     
-    st.info("💡 **Tip:** Open the sidebar (top-left arrow on mobile) to navigate.")
+    # User Control: Choose Graph Type
+    graph_type = st.radio("Select Visualization Style:", ["Dot Plot (Textbook Style)", "Box Plot (Statistical View)"], horizontal=True)
 
-# --- PAGE: NETWORK TRAFFIC (Interactive Demo) ---
-elif page == "📡 Network Traffic":
-    st.header("📡 Network Traffic Analyzer")
-    st.write("Upload your Wireshark CSV export or Router Logs to visualize bottlenecks.")
-
-    # A. The Interactive File Uploader
-    uploaded_file = st.file_uploader("Upload Network Log (CSV)", type=["csv"])
-
-    # B. If user uploads a file, run analysis
-    if uploaded_file is not None:
-        try:
-            df = pd.read_csv(uploaded_file)
-            st.success("✅ File Uploaded Successfully!")
-            
-            # Show raw data preview
-            with st.expander("View Raw Data"):
-                st.dataframe(df.head())
-
-            # C. Engineering Metrics
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Total Packets", len(df))
-            col2.metric("Avg Latency", f"{df['latency_ms'].mean():.2f} ms")
-            col3.metric("Max Throughput", f"{df['throughput_mbps'].max()} Mbps")
-
-            # D. Mobile-Friendly Visualization (Plotly)
-            st.subheader("Latency vs. Time")
-            fig = px.line(df, x='time_sec', y='latency_ms', title='Network Latency Stability')
-            st.plotly_chart(fig, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"Error parsing file: {e}. Make sure your CSV has 'latency_ms' and 'time_sec' columns.")
-    
-    # E. Demo Data Button (For users without files)
+    if graph_type == "Dot Plot (Textbook Style)":
+        # Simulate a Dot Plot using Strip Plot
+        fig = px.strip(df, x="Runout (.0001 in)", y="Method", color="Method", 
+                       title="Comparison of Thrust Face Runouts (Textbook Figure 1.1)",
+                       hover_data=["Runout (.0001 in)"])
+        fig.update_traces(marker=dict(size=10, opacity=0.7))
     else:
-        if st.button("Use Sample Data (Demo)"):
-            # Create dummy engineering data
-            data = {
-                'time_sec': np.arange(0, 60, 1),
-                'latency_ms': np.random.normal(20, 5, 60),  # Normal distribution around 20ms
-                'throughput_mbps': np.random.uniform(10, 100, 60)
-            }
-            df_sample = pd.DataFrame(data)
-            
-            st.markdown("---")
-            st.write("### 📊 Sample Analysis Result")
-            fig_sample = px.line(df_sample, x='time_sec', y='latency_ms', title='Simulated Network Latency')
-            st.plotly_chart(fig_sample, use_container_width=True)
-
-# --- PAGE: ROBOTICS (Placeholder) ---
-elif page == "🤖 Sensor Fusion":
-    st.header("🤖 Sensor Fusion & Filtering")
-    st.warning("🚧 This module is under construction. Coming soon!")
+        # Box Plot for clearer statistical summary
+        fig = px.box(df, x="Runout (.0001 in)", y="Method", color="Method", points="all",
+                     title="Statistical Spread: Laid vs. Hung")
     
+    st.plotly_chart(fig, use_container_width=True)
 
-# --- PAGE: POWER (Placeholder) ---
-elif page == "🔋 Power Profiler":
-    st.header("🔋 Embedded Power Profiler")
-    st.warning("🚧 This module is under construction. Coming soon!")
+    # 3. ENGINEERING ANALYSIS
+    st.subheader("2. Quantifying the Improvement")
+    
+    col1, col2 = st.columns(2)
+    
+    # Calculate Statistics
+    mean_laid = df_laid['Runout (.0001 in)'].mean()
+    mean_hung = df_hung['Runout (.0001 in)'].mean()
+    std_laid = df_laid['Runout (.0001 in)'].std()
+    std_hung = df_hung['Runout (.0001 in)'].std()
+
+    with col1:
+        st.info(f"**Laid Gears**")
+        st.metric("Mean Runout", f"{mean_laid:.2f}")
+        st.metric("Std Dev (Consistency)", f"{std_laid:.2f}")
+
+    with col2:
+        st.warning(f"**Hung Gears**")
+        st.metric("Mean Runout", f"{mean_hung:.2f}")
+        st.metric("Std Dev (Consistency)", f"{std_hung:.2f}")
+
+    # 4. CONCLUSION
+    st.subheader("3. The Engineering Decision")
+    improvement = mean_hung - mean_laid
+    
+    st.markdown(f"""
+    > **Textbook Insight:** "From Figure 1.1... several points are obvious. One is that there is variation... [but] Laid runouts are on the whole smaller." [cite: 479]
+    
+    **Analysis:**
+    * **Accuracy:** Laying the gears reduces the average runout by **{improvement:.2f}** units.
+    * **Precision:** The 'Laid' method has a lower Standard Deviation (**{std_laid:.2f}** vs **{std_hung:.2f}**), meaning it is more consistent.
+    
+    **Recommendation:** Unless the cost of 'Laying' is significantly higher, it is the superior engineering method.
+    """)
+
+# --- PLAYGROUND: UPLOAD OWN DATA ---
+elif lesson == "🔧 Playground: Upload Data":
+    st.header("🔧 Data Analysis Playground")
+    st.write("Upload your own engineering CSV files (e.g., sensor logs, circuit tests).")
+    
+    uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+    if uploaded_file:
+        df_user = pd.read_csv(uploaded_file)
+        st.write("### Data Preview")
+        st.dataframe(df_user.head())
+        
+        # Simple auto-plotter
+        numeric_cols = df_user.select_dtypes(include=['float', 'int']).columns
+        if len(numeric_cols) > 0:
+            target_col = st.selectbox("Select Column to Analyze:", numeric_cols)
+            fig_user = px.histogram(df_user, x=target_col, title=f"Distribution of {target_col}")
+            st.plotly_chart(fig_user)
