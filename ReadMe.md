@@ -40,5 +40,38 @@ Traditional data science courses focus on finance or sales data. **CPE-Pulse** f
 ## 📱 How to Run (Local Development)
 
 1. **Clone the repository:**
-   ```bash
+
+   ```
    git clone [https://github.com/your-username/CPE-Pulse.git](https://github.com/your-username/CPE-Pulse.git)
+
+    ```
+
+---
+   
+2. **Install dependencies:**
+
+```
+pip install -r requirements.txt
+
+```
+
+---
+
+3. **Launch the Web App:**
+```
+
+streamlit run app.py
+
+```
+*The app will open in your default browser and is mobile-responsive by default!*
+
+---
+
+🤝 Contribution
+Fellow engineering students are welcome to contribute! Whether you are a master at Python, a Cisco networking wizard, or a Six Sigma enthusiast, your inputs are valuable.
+
+Created by EngineerMapatac | Computer Engineering Student | Lean Six Sigma Yellow Belt
+
+
+---
+
